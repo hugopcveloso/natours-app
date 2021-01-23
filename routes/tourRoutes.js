@@ -14,6 +14,8 @@ router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
 
 router
   .route('/')
+  // I could also do the catchAsync method here
+  // instead of the controller
   .get(tourController.getAllTours)
   .post(tourController.createTour);
 
