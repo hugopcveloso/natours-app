@@ -1,4 +1,4 @@
-const _ = require('lodash');
+/* eslint-disable no-console */
 const AppError = require('../utils/AppError');
 
 // Error handler functions
@@ -20,6 +20,13 @@ const handleValidationError = (err) => {
   const message = `Invalid input data. ${errors.join('. ')}`;
 
   return new AppError(message, 400);
+};
+
+const handleJWTError = () => {
+  return new AppError('Invalid token, Please login again', 401);
+};
+const handleJWTExpired = () => {
+  return new AppError('Your token has expired! Please login again', 401);
 };
 
 //SENDING ERRORS DEPENDING ON ENVIRONMENT
@@ -44,7 +51,7 @@ const sendErrorProd = (err, res) => {
   } else {
     //Programming or other unknown error: don't leak error details
     //1)Log Error
-    console.error('🔥 ERROR  🔥', err);
+    console.error('❌❌ERROR❌❌', err);
     //2) Send generic message
     res.status(500).json({
       status: 'error',
@@ -63,9 +70,12 @@ module.exports = (err, req, res, next) => {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {
     //We're mutating err (original object) and that's not ideal
+
     if (err.constructor.name === 'CastError') err = handleCastErrorDB(err);
     if (err.code === 11000) err = handleDuplicateFieldsDB(err);
     if (err.name === 'ValidationError') err = handleValidationError(err);
+    if (err.name === 'JsonWebTokenError') err = handleJWTError();
+    if (err.name === 'TokenExpiredError') err = handleJWTExpired();
     sendErrorProd(err, res);
   }
 };
