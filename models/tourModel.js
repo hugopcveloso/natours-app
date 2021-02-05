@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const validator = require('validator');
+//const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -26,7 +27,7 @@ const tourSchema = new mongoose.Schema(
       type: String,
       required: [true, 'A tour must have a difficulty'],
       enum: {
-        values: ['easy', 'medium', 'difficulty'],
+        values: ['easy', 'medium', 'difficult'],
         message: 'Difficulty is either: easy, medium or difficult',
       },
     },
@@ -79,6 +80,36 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      //GeoJson
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      adress: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -90,11 +121,25 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+//Virtual Populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour', //the field in Review associated with tours
+  localField: '_id',
+});
+
 //DOCUMENT (pre) MIDDLEWARE: runs before .save() and . create() (Not on .insertMany)
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
+
+// tourSchema.pre('save', async function (next) {
+//   //📑Embedding
+//   const ids = this.guides;
+//   this.guides = await User.find({ _id: { $in: ids } });
+//   next();
+// });
 
 // tourSchema.pre('save', function (next) {
 //   console.log('Will save document...');
@@ -118,10 +163,20 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
-// tourSchema.post(/^find/, function (docs, next) {
-//   console.log(`Query took ${Date.now() - this.start} milliseconds`);
-//   next();
-// });
+tourSchema.pre(/^find/, function (next) {
+  //Populating all the tour docs
+
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
+  next();
+});
+
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`Query took ${Date.now() - this.start} milliseconds`);
+  next();
+});
 
 //AGGREGATION MIDDLEWARE
 tourSchema.pre('aggregate', function (next) {

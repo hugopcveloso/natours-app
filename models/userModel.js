@@ -47,6 +47,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -69,6 +74,13 @@ userSchema.pre('save', function (next) {
   //when we check if the user changed the password after
   //the token was issued, sometimes The token is issued before
   //changedpasswordAt timestamp is issued.
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  //query middleware, it will run before all words that contain find
+  //this points to the current query and deselects inactive users
+  this.find({ active: { $ne: false } });
   next();
 });
 
