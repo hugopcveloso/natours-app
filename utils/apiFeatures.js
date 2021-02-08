@@ -5,10 +5,11 @@ class APIFeatures {
   }
 
   filter() {
+    //we basically filter the queryObj to just contain the filter here
     const queryObj = { ...this.queryString };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach((el) => delete queryObj[el]);
-    // we can also exclude these query pairs by : const { page, sort, limit, fields, ...queryObj } = req.query;
+    //in here we parse the filter into the correct format
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
     this.query = this.query.find(JSON.parse(queryStr));
