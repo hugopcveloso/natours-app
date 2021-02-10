@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
 //const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
@@ -36,6 +35,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
+      set: (value) => Math.round((value * 10) / 10), //4.6666, 46.6 4.7
     },
     ratingsQuantity: {
       type: Number,
@@ -117,6 +117,11 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+//tourSchema.index({ price: 1 }); //one or minus one refers to the order 1 asc -1 desc
+tourSchema.index({ price: 1, ratingsAverage: -1 }); //one or minus one refers to the order
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
+
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
@@ -180,7 +185,14 @@ tourSchema.post(/^find/, function (docs, next) {
 
 //AGGREGATION MIDDLEWARE
 tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  const firstPipeline = this.pipeline()[0];
+  // geoNear needs to be the first aggregation middleware
+  // so we need to push secret tours ahead of it
+  if (Object.keys(firstPipeline)[0] !== '$geoNear') {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  } else {
+    this.pipeline().splice(1, 0, { $match: { secretTour: { $ne: true } } });
+  }
   //this adds a new match to the aggregation pipeline so that it filters secret Tours.
   next();
 });

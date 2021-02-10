@@ -90,6 +90,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
   //2) Verificating the token
   // we promisify so we can await the result
+
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   //the two double parenthisis means that promisify returns a function, (promisified verify)
   //and then what returns is called immediatelly with the next () as arguments

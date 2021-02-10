@@ -1,7 +1,9 @@
 const fs = require('fs');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const Tour = require('../../models/TourModel');
+const Tour = require('../../models/tourModel');
+const User = require('../../models/userModel');
+const Review = require('../../models/reviewModel');
 
 dotenv.config({ path: './config.env' });
 
@@ -22,11 +24,17 @@ mongoose
 // Read JSON File
 
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
+const users = JSON.parse(fs.readFileSync(`${__dirname}/users.json`, 'utf-8'));
+const reviews = JSON.parse(
+  fs.readFileSync(`${__dirname}/reviews.json`, 'utf-8')
+);
 
 // IMPORT DATA INTO DB
 const importData = async () => {
   try {
+    await User.create(users, { validateBeforeSave: false });
     await Tour.create(tours);
+    await Review.create(reviews);
     console.log('Data sucessfully loaded!');
   } catch (err) {
     console.log(err);
@@ -38,6 +46,8 @@ const importData = async () => {
 
 const deleteData = async () => {
   try {
+    await User.deleteMany();
+    await Review.deleteMany();
     await Tour.deleteMany();
     console.log('Data sucessfully deleted');
   } catch (err) {
@@ -48,9 +58,11 @@ const deleteData = async () => {
 
 if (process.argv[2] === '--import') {
   importData();
-} else if (process.argv[2] == '--delete') {
+} else if (process.argv[2] === '--delete') {
   deleteData();
 }
 
+//if the user passwords were already encrypted in dev-data
+//comment out user passwords encryptions in the user Model
 // node dev-data/data/import-dev-data.js --import
 // node dev-data/data/import-dev-data.js --delete
