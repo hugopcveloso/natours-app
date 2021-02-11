@@ -21,12 +21,15 @@ exports.getTour = catchAsync(async (req, res, next) => {
   // 3) Render template
   res
     .status(200)
-    .set(
-      'Content-Security-Policy',
-      'connect-src https://*.tiles.mapbox.com https://api.mapbox.com https://events.mapbox.com'
-    ) // so that we can accept foreign mapbox js
+    // so that we can accept foreign mapbox js
     .render('tour', {
       title: `${tour.name} Tour`,
       tour,
     });
 });
+
+exports.getLoginForm = (req, res) => {
+  res.status(200).render('login', {
+    title: 'Log into your account',
+  });
+};

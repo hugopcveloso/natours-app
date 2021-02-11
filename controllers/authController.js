@@ -82,6 +82,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
   if (!token) {
     return next(
@@ -111,6 +113,37 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
   //GRANTED ACCESS TO PROTECTED ROUTE
   req.user = currentUser;
+  next();
+});
+
+//THIS IS ONLY FOR RENDERED PAGES, not to protect since there's no errors
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  if (req.cookies.jwt) {
+    //1) Getting token and check if it's there
+    const token = req.cookies.jwt;
+
+    //2) Verificating the token
+    // we promisify so we can await the result
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    //the two double parenthisis means that promisify returns a function, (promisified verify)
+    //and then what returns is called immediatelly with the next () as arguments
+
+    //3) Check if User still exists
+    const currentUser = await User.findById(decoded.id);
+
+    if (!currentUser) {
+      return next();
+    }
+
+    //4) Check if user changed password after JWT was issued
+    if (currentUser.changedPasswordAfter(decoded.iat)) {
+      //iat means issued at
+      return next();
+    }
+    //THERE IS A LOGGED IN USER
+    res.locals.user = currentUser;
+    return next();
+  }
   next();
 });
 
