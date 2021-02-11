@@ -29,6 +29,7 @@
     "ndb": "^1.1.5",
     "nodemailer": "^6.4.17",
     "nodemon": "^2.0.6",
+    "pug": "^3.0.0",
     "slugify": "^1.4.6",
     "validator": "^13.5.2",
     "win-node-env": "^0.4.0",
