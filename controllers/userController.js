@@ -2,11 +2,38 @@ const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 const factory = require('./handlerFactory');
+const multer = require('multer');
+
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/img/users');
+  },
+  filename: (req, file, cb) => {
+    const extension = file.mimetype.split('/')[1]; //jpeg
+    cb(null, `user-${req.user.id}-${Date.now()}.${extension}`);
+  },
+});
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image, Please upload only images', 400), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+exports.uploadUserPhoto = upload.single('photo');
 
 const filterObj = (obj, ...allowedFields) => {
   //📑 This functions purpose is to filter the object
   //so we can limit the fields the user can update
   const newObj = {};
+
   Object.keys(obj).forEach((el) => {
     if (allowedFields.includes(el)) {
       newObj[el] = obj[el];
@@ -16,13 +43,14 @@ const filterObj = (obj, ...allowedFields) => {
 };
 
 exports.getMe = (req, res, next) => {
-  console.log(req.user.id);
   req.params.id = req.user.id;
   next();
 };
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1) 📑 Create Error if user POSTs password data
+  // console.log(req.file); image
+  // console.log(req.body); data
   if (req.body.password || req.body.passwordConfirm) {
     return next(
       new AppError(
@@ -34,6 +62,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   // 2) 📑 Filtered out unwanted data
   const filteredBody = filterObj(req.body, 'name', 'email');
+  if (req.file) filteredBody.photo = req.file.filename;
 
   // 3) 📑 Update the user document
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {

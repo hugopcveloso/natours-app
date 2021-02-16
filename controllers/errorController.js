@@ -30,36 +30,68 @@ const handleJWTExpired = () => {
 };
 
 //SENDING ERRORS DEPENDING ON ENVIRONMENT
-const sendErrorDev = (err, res) => {
-  console.log(`❌ ${err.stack}`);
-  console.log('----------');
-  console.log(`${err.status} -> ${err.message}`);
-  res.status(err.statusCode).json({
-    status: err.status,
-    error: err,
-    message: err.message,
-    stack: err.stack,
-  });
-};
-const sendErrorProd = (err, res) => {
-  //Operational, trusted error: send message to client
-  if (err.isOperational) {
-    res.status(err.statusCode).json({
+const sendErrorDev = (err, req, res) => {
+  //A) API
+  if (req.originalUrl.startsWith('/api')) {
+    console.log(`❌ ${err.stack}`);
+    console.log('----------');
+    console.log('----------');
+    console.log('----------');
+    console.log(`${err.statusCode} -> ${err.message}`);
+
+    return res.status(err.statusCode).json({
       status: err.status,
+      stack: err.stack,
+      error: err,
       message: err.message,
     });
-  } else {
-    //Programming or other unknown error: don't leak error details
-    //1)Log Error
+  }
+  //B) RENDERED WEBSITE
+  console.error('❌❌ERROR❌❌', err);
+
+  return res.status(err.statusCode).render('error', {
+    title: 'Something went wrong',
+    message: err.message,
+  });
+};
+const sendErrorProd = (err, req, res) => {
+  if (req.originalUrl.startsWith('/api')) {
+    //A) API
+    //A) Operational, trusted error: send message to client
+    if (err.isOperational) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+      });
+    }
     console.error('❌❌ERROR❌❌', err);
     //2) Send generic message
-    res.status(500).json({
+    return res.status(500).json({
       status: 'error',
       message: 'Something went very wrong :/',
     });
-  }
-};
 
+    //AB) Programming or other unknown error: don't leak error details
+    //1)Log Error
+  }
+  // B) RENDERED WEBSITE
+  //AB) RENDERED OPERATIONAL
+  if (err.isOperational) {
+    res.status(err.statusCode).render('error', {
+      status: err.status,
+      message: err.message,
+    });
+    return;
+  }
+  //BB) RENDERED WEBSITE/PROGRAMATING ERROR
+  //1)Log Error
+  console.error('❌❌ERROR❌❌', err);
+  //2) Send generic message
+  return res.status(500).render('error', {
+    status: 'error',
+    message: 'Please try again later',
+  });
+};
 module.exports = (err, req, res, next) => {
   //error handling middleware
   err.statusCode = err.statusCode || 500;
@@ -67,14 +99,15 @@ module.exports = (err, req, res, next) => {
 
   //sending different errors in dev and prod
   if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, res);
+    sendErrorDev(err, req, res);
   } else if (process.env.NODE_ENV === 'production') {
-    //We're mutating err (original object) and that's not ideal
-    if (err.constructor.name === 'CastError') err = handleCastErrorDB(err);
-    if (err.code === 11000) err = handleDuplicateFieldsDB(err);
-    if (err.name === 'ValidationError') err = handleValidationError(err);
-    if (err.name === 'JsonWebTokenError') err = handleJWTError();
-    if (err.name === 'TokenExpiredError') err = handleJWTExpired();
-    sendErrorProd(err, res);
+    let error = { ...err };
+    error.message = err.message; //we need to do this, because message is a constructor property
+    if (err.constructor.name === 'CastError') error = handleCastErrorDB(err);
+    if (err.code === 11000) error = handleDuplicateFieldsDB(err);
+    if (err.name === 'ValidationError') error = handleValidationError(err);
+    if (err.name === 'JsonWebTokenError') error = handleJWTError();
+    if (err.name === 'TokenExpiredError') error = handleJWTExpired();
+    sendErrorProd(error, req, res);
   }
 };

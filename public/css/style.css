@@ -50,6 +50,7 @@ body {
   -ms-flex: 1;
   flex: 1;
   position: relative;
+  min-height: 70vh;
 }
 
 .flex {
@@ -896,7 +897,7 @@ body {
 .nav__el,
 .nav__el:link,
 .nav__el:visited {
-  color: #f7f7f7;
+  color: #cbcbcb;
   text-transform: uppercase;
   font-size: 1.6rem;
   text-decoration: none;
@@ -1199,6 +1200,7 @@ body {
   text-align: center;
 }
 .error__title {
+  margin-top: 120px;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;

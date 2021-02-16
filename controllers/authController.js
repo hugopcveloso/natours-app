@@ -74,6 +74,15 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+exports.logout = async (req, res) => {
+  // res.cookie('jwt', null, {
+  //   expire: new Date(Date.now() - 1000 * 10),
+  //   httpOnly: true,
+  // });
+  res.clearCookie('jwt');
+  res.status(200).json({ status: 'success' });
+};
+
 exports.protect = catchAsync(async (req, res, next) => {
   //1) Getting token and check if it's there
   let token;
@@ -113,15 +122,15 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
   //GRANTED ACCESS TO PROTECTED ROUTE
   req.user = currentUser;
+  res.locals.user = currentUser;
   next();
 });
 
 //THIS IS ONLY FOR RENDERED PAGES, not to protect since there's no errors
 exports.isLoggedIn = catchAsync(async (req, res, next) => {
-  if (req.cookies.jwt) {
+  if (req.cookies.jwt && req.cookies.jwt != null) {
     //1) Getting token and check if it's there
     const token = req.cookies.jwt;
-
     //2) Verificating the token
     // we promisify so we can await the result
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
@@ -232,13 +241,13 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   //1) 📑 Get user from collection with the password
   const user = await User.findById(req.user.id).select('+password');
   //2) 📑 Check if POSTed current password is correct
-  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+  if (!(await user.correctPassword(req.body.data.passwordCurrent, user.password))) {
     return next(new AppError('Your current password is wrong!', 401));
   }
   //3) 📑 If it is, update password
 
-  user.password = req.body.password;
-  user.passwordConfirm = req.body.passwordConfirm;
+  user.password = await req.body.data.password;
+  user.passwordConfirm = await req.body.data.passwordConfirm;
   //user.passwordChangedAt = Date.now(); doing it with a pre doc middleware
   await user.save();
   //User.findByIdAndUpdate will not work as intended
