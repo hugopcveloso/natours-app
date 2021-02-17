@@ -13,16 +13,14 @@ export const updateUserSettings = async (data, type) => {
     const res = await axios({
       method: 'PATCH',
       url: url,
-      data: {
-        data,
-      },
+      data,
     });
     if (res.data.status === 'success') {
       const message = `${type} updated successfully`;
       showAlert('success', message);
       window.setTimeout(() => {
-        //redirection
-        location.reload();
+        //redirection to same page
+        //  location.reload();
       }, 1100);
     }
   } catch (err) {

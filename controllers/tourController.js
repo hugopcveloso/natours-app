@@ -2,9 +2,69 @@ const Tour = require('../models/tourModel');
 const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
+const multer = require('multer');
+const sharp = require('sharp');
+
 // const tours = JSON.parse(
 //   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 // );
+
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image, Please upload only images', 400), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+// if we were uploading multiple images for the same field
+//upload.array('images', 3)
+//upload.single('image') for single images
+
+//upload.fields for multiple images in different fields
+exports.uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  if (!req.files.imageCover || !req.files.images) {
+    return next();
+  }
+  //1)Cover image
+  const imageCoverFilename = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${imageCoverFilename}`);
+  req.body.imageCover = imageCoverFilename; //so we can pass it to updateOne
+  //2) Images
+  req.body.images = [];
+
+  //if we just looped in forEach we can't use async await
+  await Promise.all(
+    req.files.images.map(async (file, index) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${index + 1}.jpeg`;
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+
+      req.body.images.push(filename); //so we can update it in the next middleware
+    })
+  );
+  console.log(req.body.images);
+  next();
+});
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';

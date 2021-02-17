@@ -19,7 +19,8 @@ const userSchema = new mongoose.Schema({
     //could also use match(regex, msg) to validate email
   },
   photo: {
-    type: String, //path to the photo
+    type: String,
+    default: 'default.jpg', //path to the photo
   },
   role: {
     type: String,

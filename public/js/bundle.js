@@ -8653,9 +8653,7 @@ var updateUserSettings = /*#__PURE__*/function () {
             return (0, _axios.default)({
               method: 'PATCH',
               url: url,
-              data: {
-                data: data
-              }
+              data: data
             });
 
           case 5:
@@ -8664,9 +8662,8 @@ var updateUserSettings = /*#__PURE__*/function () {
             if (res.data.status === 'success') {
               message = "".concat(type, " updated successfully");
               (0, _alerts.showAlert)('success', message);
-              window.setTimeout(function () {
-                //redirection
-                location.reload();
+              window.setTimeout(function () {//redirection to same page
+                //  location.reload();
               }, 1100);
             }
 
@@ -8990,12 +8987,12 @@ if (logOutBtn) {
 if (updateForm) {
   updateForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    var name = document.getElementById('name').value;
-    var email = document.getElementById('email').value;
-    (0, _updateSettings.updateUserSettings)({
-      name: name,
-      email: email
-    }, 'data');
+    var form = new FormData();
+    form.append('name', document.getElementById('name').value);
+    form.append('email', document.getElementById('email').value);
+    form.append('photo', document.getElementById('photo').files[0]);
+    console.log(form);
+    (0, _updateSettings.updateUserSettings)(form, 'data');
   });
 }
 

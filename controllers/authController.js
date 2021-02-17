@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
-const sendEmail = require('../utils/email');
+const Email = require('../utils/email');
 
 const signToken = (id) => {
   return jwt.sign({ id: id }, process.env.JWT_SECRET, {
@@ -43,10 +43,12 @@ exports.signUp = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
     passwordChangedAt: req.body.passwordChangedAt,
-    role: req.body.role,
-  }); //this way we limit the data we accept
+  });
+  //this way we limit the data we accept
   //we won't accept if hackers change their role: admin.
-
+  const url = `${req.protocol}://${req.get('host')}//me`;
+  console.log(url);
+  await new Email(newUser, url).sendWelcome();
   const token = signToken(newUser._id);
 
   createSendToken(newUser, 201, res);
@@ -186,11 +188,11 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}
   If you didn't forget your password, please ignore this email!`;
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your password reset token (valid 10min)',
-      message: message,
-    });
+    // await sendEmail({
+    //   email: user.email,
+    //   subject: 'Your password reset token (valid 10min)',
+    //   message: message,
+    // });
     res.status(200).json({
       status: 'success',
       message: 'Token sent to email',
@@ -241,7 +243,9 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   //1) 📑 Get user from collection with the password
   const user = await User.findById(req.user.id).select('+password');
   //2) 📑 Check if POSTed current password is correct
-  if (!(await user.correctPassword(req.body.data.passwordCurrent, user.password))) {
+  if (
+    !(await user.correctPassword(req.body.data.passwordCurrent, user.password))
+  ) {
     return next(new AppError('Your current password is wrong!', 401));
   }
   //3) 📑 If it is, update password
