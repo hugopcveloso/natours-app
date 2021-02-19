@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const nodemailerSendgrid = require('nodemailer-sendgrid');
+
 const pug = require('pug');
 const htmlToText = require('html-to-text');
 
@@ -13,7 +15,16 @@ module.exports = class Email {
   newTransport() {
     if (process.env.NODE_ENV === 'production') {
       //Sendgrid
-      return 1;
+
+      return nodemailer.createTransport(
+        nodemailerSendgrid({
+          apiKey: process.env.SENDGRID_PASSWORD,
+        })
+        // auth: {
+        //   user: apikey,
+        //   password: process.env.SENDGRID_PASSWORD,
+        // },
+      );
     }
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
@@ -31,16 +42,16 @@ module.exports = class Email {
     const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
       firstName: this.firstName,
       url: this.url,
-      subject,
+      subject: subject,
     });
 
     // 2) Define email options
     const mailOptions = {
       from: this.from,
       to: this.to,
-      subject,
-      html,
-      text: htmlToText.fromString(html),
+      subject: subject,
+      html: html,
+      text: 'aaaa',
       //html:
     };
     //3-Create a transport and send email
@@ -50,6 +61,13 @@ module.exports = class Email {
 
   async sendWelcome() {
     await this.send('welcome', 'Welcome to the Natours Family!');
+  }
+
+  async sendPasswordReset() {
+    await this.send(
+      'passwordReset',
+      'Your password reset token (valid for only 10 minutes)'
+    );
   }
 };
 
