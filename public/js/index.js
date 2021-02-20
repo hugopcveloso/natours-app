@@ -1,6 +1,7 @@
 /* eslint-disable */
 import 'core-js';
 import { login, logout } from './login';
+import { signup } from './signup';
 import { displayMap } from './mapbox';
 import { updateUserSettings } from '/updateSettings';
 
@@ -10,9 +11,22 @@ const mapBox = document.getElementById('map');
 const logOutBtn = document.querySelector('.nav__el--logout');
 const updateForm = document.querySelector('.form-user-data');
 const passwordForm = document.querySelector('.form-user-password');
+const signupForm = document.querySelector('.form--signup');
+console.log(signupForm);
 //VALUES
 
 //DELEGATION
+if (signupForm) {
+  signupForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const passwordConfirm = document.getElementById('password-confirm').value;
+    signup(name, email, password, passwordConfirm);
+  });
+}
+
 if (loginForm) {
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
