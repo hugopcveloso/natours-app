@@ -4,6 +4,7 @@ import { login, logout } from './login';
 import { signup } from './signup';
 import { displayMap } from './mapbox';
 import { updateUserSettings } from '/updateSettings';
+import { bookTour } from './stripe';
 
 // DOM ELEMENTS
 const loginForm = document.querySelector('.form--login');
@@ -12,7 +13,8 @@ const logOutBtn = document.querySelector('.nav__el--logout');
 const updateForm = document.querySelector('.form-user-data');
 const passwordForm = document.querySelector('.form-user-password');
 const signupForm = document.querySelector('.form--signup');
-console.log(signupForm);
+const bookBtn = document.getElementById('book-tour');
+
 //VALUES
 
 //DELEGATION
@@ -75,6 +77,13 @@ if (passwordForm) {
     document.getElementById('password-confirm').value = '';
   });
 }
+
+if (bookBtn)
+  bookBtn.addEventListener('click', (e) => {
+    e.target.textContent = 'Processing...';
+    const { tourId } = e.target.dataset; //datasets convert dash into camelCase
+    bookTour(tourId);
+  });
 
 //API expecting
 // {

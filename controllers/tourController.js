@@ -1,9 +1,10 @@
-const Tour = require('../models/tourModel');
+const multer = require('multer');
+const sharp = require('sharp');
 const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
-const multer = require('multer');
-const sharp = require('sharp');
+
+const Tour = require('../models/tourModel');
 
 // const tours = JSON.parse(
 //   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
