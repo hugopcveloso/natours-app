@@ -21,16 +21,6 @@ process.on('uncaughtException', (err) => {
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 
-const started = new Date();
-console.info(`Connecting to Mongoose:     ${started.toLocaleTimeString()}`);
-const tm = function (startTime, failVal) {
-  var end = new Date() - startTime;
-  var fail = end <= failVal ? 'pass' : 'fail';
-  return `${new Date().toLocaleTimeString()}: ${end
-    .toString()
-    .padStart(5, ' ')} ms : ${fail}`;
-};
-
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD
@@ -47,9 +37,10 @@ const options = {
 };
 mongoose
   .connect(DB, options)
-  .then(() => console.log('DB connection successful!  ', tm(started, 20000)));
+  .then(() => console.log('DB connection successful!  '));
 
 const port = process.env.PORT || 3000; //we need PORT because of heroku
+
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
