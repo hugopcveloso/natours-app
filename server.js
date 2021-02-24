@@ -21,16 +21,6 @@ process.on('uncaughtException', (err) => {
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 
-const started = new Date();
-console.info(`Connecting to Mongoose:     ${started.toLocaleTimeString()}`);
-const tm = function (startTime, failVal) {
-  var end = new Date() - startTime;
-  var fail = end <= failVal ? 'pass' : 'fail';
-  return `${new Date().toLocaleTimeString()}: ${end
-    .toString()
-    .padStart(5, ' ')} ms : ${fail}`;
-};
-
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD
@@ -39,17 +29,17 @@ const DB = process.env.DATABASE.replace(
 // to connect to a local database we would put
 // mongoose.connect(process.env.DATABASE_LOCAL, AND THEN THE SAME AS BELOW>
 
-const options = {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
-  useUnifiedTopology: true, // Terminal suggestion
-};
 mongoose
-  .connect(DB, options)
-  .then(() => console.log('DB connection successful!  ', tm(started, 20000)));
+  .connect(DB, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+    useUnifiedTopology: true, // Terminal suggestion
+  })
+  .then(() => console.log('DB connection successful!  '));
 
 const port = process.env.PORT || 3000; //we need PORT because of heroku
+
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
