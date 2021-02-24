@@ -28,7 +28,15 @@ const bookingSchema = new mongoose.Schema({
 
 bookingSchema.pre(/^find/, function (next) {
   this.populate('user').populate({ path: 'tour', select: 'name' });
+  next();
 });
+
+//TODO: try to user populate
+// bookingSchema.virtual('from tour', {
+//   ref: 'Tour',
+//   localField: 'tour', //the field in Review associated with tours
+//   foreignField: '_id',
+// });
 
 const Booking = mongoose.model('Booking', bookingSchema);
 
