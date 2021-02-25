@@ -71,11 +71,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 //STRIPE ROUTE
-app.post(
-  '/webhook-checkout',
-  express.raw({ type: 'application/json' }),
-  bookingController.webhookCheckout
-);
+app.post('/webhook-checkout', express.raw(), bookingController.webhookCheckout);
 //we need to put the stripe requests here because it's expecting
 //raw stream and not a json body. (so before the body parser)
 
