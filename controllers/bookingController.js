@@ -75,7 +75,6 @@ exports.webhookCheckout = async (req, res, next) => {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
     );
-    console.log(event);
   } catch (err) {
     // it's stripe that will receive this error message!
     return res.status(400).send(`Webhook error: ${err.message}`);

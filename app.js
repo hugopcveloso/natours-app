@@ -74,7 +74,7 @@ app.use('/api', limiter);
 
 //STRIPE ROUTE
 app.post(
-  '/webhook-checkout',
+  '/create-checkout-session',
   bodyParser.raw({ type: 'application/json' }),
   bookingController.webhookCheckout
 );
