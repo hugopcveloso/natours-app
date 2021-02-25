@@ -27,7 +27,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
       {
         quantity: 1,
         price_data: {
-          currency: 'usd',
+          currency: 'eur',
           unit_amount: tour.price * 100,
           product_data: {
             name: `${tour.name} Tour`,
@@ -75,6 +75,7 @@ exports.webhookCheckout = async (req, res, next) => {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
     );
+    console.log(event);
   } catch (err) {
     // it's stripe that will receive this error message!
     return res.status(400).send(`Webhook error: ${err.message}`);
