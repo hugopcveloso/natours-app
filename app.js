@@ -8,6 +8,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const cors = require('cors');
 
 const AppError = require('./utils/AppError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -29,6 +30,17 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 1) GLOBAL MIDDLEWARES
+
+// We're Implementing cors globally here.
+//(Note: we can put this on specific routes to enable cors on specific routes only)
+app.use(cors());
+// Acess-Control-Allow-Origin *
+//(Note: in case we had our front-end in a different domain)
+// app.use(cors({
+//   origin: 'https://www.natours.com'
+// }))
+
+app.options('*', cors());
 
 //🔐setting security http headers w/headers
 app.use(helmet());
