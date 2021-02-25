@@ -7,6 +7,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+
 const compression = require('compression');
 const cors = require('cors');
 
@@ -71,7 +73,11 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 //STRIPE ROUTE
-app.post('/webhook-checkout', express.raw(), bookingController.webhookCheckout);
+app.post(
+  '/webhook-checkout',
+  bodyParser.raw({ type: 'application/json' }),
+  bookingController.webhookCheckout
+);
 //we need to put the stripe requests here because it's expecting
 //raw stream and not a json body. (so before the body parser)
 
