@@ -50,3 +50,5 @@ process.on('SIGTERM', () => {
     console.log('💥 Process terminated!');
   });
 });
+//sigterm is an event. this takes care of all the pending requests before the
+// application is shutdown by heroku.
