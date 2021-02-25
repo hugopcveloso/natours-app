@@ -76,7 +76,7 @@ exports.webhookCheckout = (req, res, next) => {
     // it's stripe that will receive this error message!
     return res.status(400).send(`Webhook error: ${err.message}`);
   }
-  if (event.type === 'checkout.session.complete')
+  if (event.type === 'checkout.session.completed')
     createBookingCheckout(event.data.object);
   res.status(200).json({ received: true });
 };
