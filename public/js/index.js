@@ -5,6 +5,7 @@ import { signup } from './signup';
 import { displayMap } from './mapbox';
 import { updateUserSettings } from '/updateSettings';
 import { bookTour } from './stripe';
+import { showAlert } from './alerts';
 
 // DOM ELEMENTS
 const loginForm = document.querySelector('.form--login');
@@ -14,7 +15,7 @@ const updateForm = document.querySelector('.form-user-data');
 const passwordForm = document.querySelector('.form-user-password');
 const signupForm = document.querySelector('.form--signup');
 const bookBtn = document.getElementById('book-tour');
-
+const alertMessage = document.querySelector('body').dataset.alert;
 //VALUES
 
 //DELEGATION
@@ -84,9 +85,4 @@ if (bookBtn)
     bookTour(tourId);
   });
 
-//API expecting
-// {
-//   "passwordCurrent": "Input your own password",
-//   "password": "{{password}}",
-//   "passwordConfirm": "{{password}}"
-// }
+if (alert) showAlert('success', alertMessage, 10);
